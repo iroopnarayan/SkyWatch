@@ -1,4 +1,3 @@
-// import { SiPrimereact } from "react-icons/si";
 import { useEffect, useState } from "react";
 import Forcast from "./components/Forcast";
 import Inputs from "./components/inputs";
@@ -9,30 +8,39 @@ import getFormattedWeatherData from "./services/weatherService";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import getWeatherData from "./services/weatherService";
+
 const App = () => {
   const [query, setQuery] = useState({ q: "Jaipur" });
   const [units, setUnits] = useState("metric");
   const [weather, setWeather] = useState(null);
+  const [isFetching, setIsFetching] = useState(false); // State to track fetching
 
   const getWeather = async () => {
     const CityName = query.q ? query.q : "current location";
-    // toast.info(`Fetching weather data for ${CityName}`);
-    console.log(`Fetching weather data for ${CityName}`);
 
-    await getFormattedWeatherData({ ...query, units }).then((data) => {
-      // toast.success(`Fetched weather data for ${data.name}, ${data.country}`);
+    if (!isFetching) {
+      setIsFetching(true);
+      toast.info(`Fetching weather data for ${CityName}`);
+      console.log(`Fetching weather data for ${CityName}`);
+    }
+
+    try {
+      const data = await getFormattedWeatherData({ ...query, units });
+      toast.success(`Fetched weather data for ${data.name}, ${data.country}`);
       console.log(`Fetched weather data for ${data.name}, ${data.country}`);
 
       setWeather(data);
-    });
-    // console.log(data);
+    } catch (error) {
+      toast.error("Error fetching weather data");
+      console.error("Error fetching weather data:", error);
+    } finally {
+      setIsFetching(false); // Reset fetching state
+    }
   };
-  // { q: "jaipur" }
+
   useEffect(() => {
-    getWeather;
+    getWeather(); // Call the function here
   }, [query, units]);
-  getWeather();
 
   const formatBackground = () => {
     if (!weather) return "from-blue-400 to-gray-300";
@@ -40,6 +48,7 @@ const App = () => {
     if (weather.temp <= threshold) return "from-blue-400 to-gray-300";
     return "from-blue-300 to-pink-300";
   };
+
   return (
     <div
       className={`mx-auto rounded-lg max-w-screen-lg mt-4 py-5 px-32 bg-gradient-to-br shadow-xl shadow-gray-400 ${formatBackground()}`}
@@ -49,7 +58,6 @@ const App = () => {
 
       {weather && (
         <>
-          {/* <SiPrimereact /> */}
           <TimeAndLocation weather={weather}></TimeAndLocation>
           <TempratureInfo weather={weather} units={units}></TempratureInfo>
 
